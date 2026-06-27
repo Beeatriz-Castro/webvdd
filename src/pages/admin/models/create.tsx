@@ -48,7 +48,6 @@ export const CreateModelPage = () => {
                c.nome.toLowerCase() === colorData.colorName.toLowerCase()
         );
 
-        // Se não existir, criamos a cor na hora
         if (!cor) {
           cor = await createCor(colorData.colorName, colorData.colorHex);
           coresCadastradas.push(cor); // Atualiza o cache local
@@ -56,19 +55,17 @@ export const CreateModelPage = () => {
 
         const idCor = cor.id;
 
-        // Variação padrão (pode adicionar tamanhos posteriormente)
         variacoesPayload.push({
           idCor: idCor,
           estoque: 10 
         });
 
-        // Função auxiliar para vincular os ficheiros ao idCor e tipo correto
         const processarImagem = (img: File | string | null, tipo: "APRESENTACAO" | "FRENTE" | "COSTAS") => {
           if (img && img instanceof File) {
             arquivosFinais.push(img);
             imagensPayload.push({
               idCor: idCor,
-              idExternoStorage: img.name, // O Multer do NestJS faz a associação através do nome original
+              idExternoStorage: img.name,
               tipoVisualizacao: tipo
             });
           }
@@ -79,20 +76,18 @@ export const CreateModelPage = () => {
         processarImagem(colorData.backImage, "COSTAS");
       }
 
-      // 3. Montar o payload final com a tipagem exigida pelo DTO
       const payload = {
         nome: data.nome,
         preco: data.preco,
-        categorias: [], // Futuramente pode adicionar um componente de Select para o id_categoria
+        categorias: [],
         imagens: imagensPayload,
         variacoes: variacoesPayload,
       };
 
-      // 4. Enviar a requisição (o formData é montado automaticamente dentro desta função na sua API)
       await createPersonalizavel(payload, arquivosFinais);
       
       alert("Produto registado com sucesso!");
-      navigate("/admin"); // Volta ao ecrã inicial de administração
+      navigate("/admin");
       
     } catch (error: any) {
       console.error(error);

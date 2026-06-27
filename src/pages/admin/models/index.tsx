@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Plus, Shirt, Loader2 } from "lucide-react";
 import { listPersonalizaveis, type ProdutoPersonalizavel } from "@/lib/api/personalizaveis";
-import { ModelCard } from "@/components/cards/model-card"; // <-- Importamos o teu cartão aqui!
+import { ModelCard } from "@/components/cards/model-card";
 
 export const AdminModelsPage = () => {
   const [models, setModels] = useState<ProdutoPersonalizavel[]>([]);
@@ -52,7 +52,6 @@ export const AdminModelsPage = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {models.map((model) => (
-             /* Aqui usamos o teu cartão que contém o botão Editar */
             <ModelCard key={model.id} product={model} />
           ))}
         </div>

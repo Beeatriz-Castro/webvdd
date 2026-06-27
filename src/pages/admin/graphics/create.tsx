@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageInput } from "@/components/ui/image-input";
 import { ArrowLeft } from "lucide-react";
-
-// Importe a função da sua API existente ou use o fetch diretamente
 import { API_BASE_URL } from "@/lib/api/api"; 
 
 interface GraphicFormData {
@@ -26,7 +24,6 @@ export const CreateGraphicPage = () => {
       return;
     }
 
-    // Pega a string "Rock, Fofo, Geek", separa pelas vírgulas e remove espaços vazios
     const estilosArray = data.estilosNomes
       .split(",")
       .map(s => s.trim())
@@ -40,16 +37,12 @@ export const CreateGraphicPage = () => {
     try {
       const formData = new FormData();
       formData.append("nome", data.nome);
-      // O backend usa JSON.parse(estilosNomesRaw), por isso temos de enviar como string JSON
       formData.append("estilosNomes", JSON.stringify(estilosArray));
-      // O backend do NestJS espera a chave 'image' no FileInterceptor
       formData.append("image", image);
 
-      // Chamada HTTP para o seu backend
       const response = await fetch(`${API_BASE_URL}/estampas`, {
         method: "POST",
         body: formData,
-        // Não defina o Content-Type manualmente quando usa FormData
       });
 
       if (!response.ok) {
@@ -58,7 +51,7 @@ export const CreateGraphicPage = () => {
       }
 
       alert("Estampa registada com sucesso!");
-      navigate("/admin/graphics"); // Redireciona de volta para a galeria
+      navigate("/admin/graphics");
       
     } catch (error: any) {
       console.error(error);

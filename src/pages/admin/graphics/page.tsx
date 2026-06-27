@@ -83,13 +83,12 @@ export const AdminGraphicsPage = () => {
           </div>
           <h2 className="text-2xl font-bold text-pink-500 mb-2">Poxa, nenhuma estampa encontrada!</h2>
           <p className="text-pink-400 font-medium max-w-md">
-            Que tal adicionar uma nova arte maravilhosa para os seus clientes personalizarem?
+            Adcione uma nova arte maravilhosa para os seus clientes personalizarem!
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {estampas.map((estampa) => {
-            // Constrói a URL usando a base da sua API e a pasta estática "uploads" liberada no NestJS
             const imageUrl = estampa.imagens?.[0]?.id_externo_storage
               ? `${API_BASE_URL}/uploads/${estampa.imagens[0].id_externo_storage}`
               : null;

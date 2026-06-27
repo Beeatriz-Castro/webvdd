@@ -14,7 +14,6 @@ interface ProductFormData {
   preco: number;
 }
 
-// 1. Tipagem definida para as imagens ao invés de usar 'any'
 interface ProductImage {
   id_cor: number;
   id_externo_storage: string;
@@ -27,16 +26,10 @@ interface ProductImage {
 
 export const EditModelPage = () => {
   const { id } = useParams<{ id: string }>();
-  // const navigate = useNavigate(); // Descomente quando for usar o redirecionamento
-  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [colors, setColors] = useState<ColorCardData[]>([]);
-  
-  // 2. Extração do handleSubmit e isSubmitting
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ProductFormData>();
-
-  // 3. Separação da lógica de construção dos cards de cor
   const processImages = useCallback((imagens: ProductImage[]) => {
     const colorMap = new Map<number, ColorCardData>();
     
@@ -89,18 +82,14 @@ export const EditModelPage = () => {
     loadData();
   }, [id, reset, processImages]);
 
-  // 4. Função de submissão do formulário
   const onSubmit = async (data: ProductFormData) => {
     try {
       console.log("Enviando dados para a API:", data);
-      // await updateCustomizable(Number(id), data);
-      // navigate("/admin/models");
     } catch (err) {
       console.error("Erro ao salvar produto:", err);
     }
   };
 
-  // 5. Melhor feedback visual para loading e erro
   if (loading) {
     return (
       <div className="min-h-[50vh] flex justify-center items-center">
@@ -138,7 +127,6 @@ export const EditModelPage = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="preco">Preço (R$)</Label>
-            {/* type="number" com step permite centavos */}
             <Input id="preco" type="number" step="0.01" placeholder="0.00" {...register("preco", { required: true })} />
           </div>
         </div>
@@ -166,7 +154,6 @@ export const EditModelPage = () => {
           )}
         </div>
 
-        {/* Botão de salvar no final do formulário */}
         <div className="flex justify-end pt-6 border-t">
           <Button type="submit" disabled={isSubmitting} className="gap-2">
             {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
