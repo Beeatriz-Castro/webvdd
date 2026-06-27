@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageInput } from "@/components/ui/image-input";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2, Save, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api/api"; 
 
 interface GraphicFormData {
@@ -16,11 +16,14 @@ interface GraphicFormData {
 export const CreateGraphicPage = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<GraphicFormData>();
   const [image, setImage] = useState<File | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const onSubmit = async (data: GraphicFormData) => {
+    setFormError(null);
+    
     if (!image) {
-      alert("Por favor, adicione a imagem da estampa.");
+      setFormError("Por favor, adicione o ficheiro da estampa antes de continuar.");
       return;
     }
 
@@ -30,7 +33,7 @@ export const CreateGraphicPage = () => {
       .filter(s => s.length > 0);
 
     if (estilosArray.length === 0) {
-      alert("Por favor, adicione pelo menos um estilo.");
+      setFormError("Por favor, adicione pelo menos um estilo válido.");
       return;
     }
 
@@ -55,7 +58,7 @@ export const CreateGraphicPage = () => {
       
     } catch (error: any) {
       console.error(error);
-      alert(`Erro ao registar: ${error.message}`);
+      setFormError(`Erro ao registar: ${error.message || "Erro desconhecido"}`);
     }
   };
 
@@ -70,23 +73,32 @@ export const CreateGraphicPage = () => {
         <h1 className="text-2xl font-black text-gray-800">Registar Nova Arte</h1>
       </div>
       
+      {formError && (
+        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-[16px] border border-red-100 flex items-center gap-3">
+          <AlertCircle className="size-5 flex-shrink-0" />
+          <p className="text-sm font-medium">{formError}</p>
+        </div>
+      )}
+
       <form 
         onSubmit={handleSubmit(onSubmit)} 
         className="flex flex-col gap-6 bg-white p-8 rounded-[32px] border-4 border-pink-100 shadow-sm"
       >
         <div>
-          <Label className="text-gray-700">Nome da Estampa</Label>
+          <Label htmlFor="nome" className="text-gray-700 font-semibold">Nome da Estampa</Label>
           <Input 
+            id="nome"
             {...register("nome", { required: "O nome é obrigatório." })} 
             placeholder="Ex: Caveira Mexicana Neon" 
             className="mt-2"
           />
-          {errors.nome && <span className="text-red-500 text-sm mt-1 block">{errors.nome.message}</span>}
+          {errors.nome && <span className="text-red-500 text-sm mt-1 block font-medium">{errors.nome.message}</span>}
         </div>
 
         <div>
-          <Label className="text-gray-700">Estilos (separados por vírgula)</Label>
+          <Label htmlFor="estilosNomes" className="text-gray-700 font-semibold">Estilos (separados por vírgula)</Label>
           <Input 
+            id="estilosNomes"
             {...register("estilosNomes", { required: "Informe pelo menos um estilo." })} 
             placeholder="Ex: Geek, Vintage, Minimalista" 
             className="mt-2"
@@ -94,11 +106,11 @@ export const CreateGraphicPage = () => {
           <span className="text-xs text-gray-400 mt-2 block font-medium">
             Estes estilos ajudarão os clientes a filtrar as estampas na loja.
           </span>
-          {errors.estilosNomes && <span className="text-red-500 text-sm mt-1 block">{errors.estilosNomes.message}</span>}
+          {errors.estilosNomes && <span className="text-red-500 text-sm mt-1 block font-medium">{errors.estilosNomes.message}</span>}
         </div>
 
         <div>
-          <Label className="mb-3 block text-gray-700">Ficheiro da Estampa</Label>
+          <Label className="mb-3 block text-gray-700 font-semibold">Ficheiro da Estampa</Label>
           <ImageInput
             value={image}
             onChange={setImage}
@@ -109,9 +121,10 @@ export const CreateGraphicPage = () => {
 
         <Button 
           type="submit" 
-          className="w-full mt-4" 
+          className="w-full mt-4 gap-2 h-12 text-md rounded-xl" 
           disabled={isSubmitting}
         >
+          {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
           {isSubmitting ? "A Guardar..." : "Registar Estampa"}
         </Button>
       </form>
