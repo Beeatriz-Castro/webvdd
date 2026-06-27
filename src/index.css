@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #ffffff;
+    font-family: 'Nunito', 'Quicksand', sans-serif;
+    color: #5a4b50;
+  }
+}
