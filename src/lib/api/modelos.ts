@@ -1,4 +1,5 @@
-export { API_BASE_URL } from "./api";
+import { API_BASE_URL } from "./api";
+export { API_BASE_URL };
 
 export type TipoVisualizacaoProduto = "APRESENTACAO" | "FRENTE" | "COSTAS";
 
@@ -59,6 +60,11 @@ export interface ListModelosParams {
   ativo?: boolean;
 }
 
+export interface ProdutoCorObject {
+  hex: string;
+  name: string;
+}
+
 export function getProdutoImagemUrl(produto: ProdutoPersonalizavel, selectedColorHex?: string | null) {
   let imagem;
   if (selectedColorHex) {
@@ -78,11 +84,6 @@ export function getProdutoImagemUrl(produto: ProdutoPersonalizavel, selectedColo
   return `${API_BASE_URL}/uploads/${imagem.id_externo_storage}`;
 }
 
-export interface ProdutoCorObject {
-  hex: string;
-  name: string;
-}
-
 export function getProdutoCores(produto: ProdutoPersonalizavel): ProdutoCorObject[] {
   const map = new Map<string, string>();
   
@@ -97,25 +98,18 @@ export function getProdutoCores(produto: ProdutoPersonalizavel): ProdutoCorObjec
   return Array.from(map.entries()).map(([hex, name]) => ({ hex, name }));
 }
 
-export async function listModelos(
-  params: ListModelosParams = {},
-): Promise<ProdutoPersonalizavel[]> {
+// === REQUISIÇÕES (FETCH) ===
+
+export async function listModelos(params: ListModelosParams = {}): Promise<ProdutoPersonalizavel[]> {
   const searchParams = new URLSearchParams();
   const trimmedSearch = params.search?.trim();
 
-  if (trimmedSearch) {
-    searchParams.append("search", trimmedSearch);
-  }
-
-  if (typeof params.ativo === "boolean") {
-    searchParams.append("ativo", String(params.ativo));
-  }
+  if (trimmedSearch) searchParams.append("search", trimmedSearch);
+  if (typeof params.ativo === "boolean") searchParams.append("ativo", String(params.ativo));
 
   const queryString = searchParams.toString();
   const response = await fetch(
-    `${API_BASE_URL}/produtos-personalizaveis${
-      queryString ? `?${queryString}` : ""
-    }`,
+    `${API_BASE_URL}/produtos-personalizaveis${queryString ? `?${queryString}` : ""}`
   );
 
   if (!response.ok) {
@@ -125,12 +119,8 @@ export async function listModelos(
   return response.json();
 }
 
-export async function getModeloById(
-  id: number,
-): Promise<ProdutoPersonalizavel> {
-  const response = await fetch(
-    `${API_BASE_URL}/produtos-personalizaveis/${id}`,
-  );
+export async function getModeloById(id: number): Promise<ProdutoPersonalizavel> {
+  const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}`);
 
   if (!response.ok) {
     throw new Error(`Erro ao buscar modelo: ${response.statusText}`);
@@ -138,3 +128,33 @@ export async function getModeloById(
 
   return response.json();
 }
+
+export async function togglePersonalizavelStatus(id: number, ativo: boolean): Promise<ProdutoPersonalizavel> {
+  const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ativo }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || `Erro ao atualizar status: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deletePersonalizavel(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || `Erro ao remover produto: ${response.statusText}`);
+  }
+}
+
+export const getCustomizableById = getModeloById;

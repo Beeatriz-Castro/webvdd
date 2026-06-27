@@ -63,70 +63,75 @@ export const CreateGraphicPage = () => {
   };
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" className="bg-white rounded-full hover:bg-pink-50" asChild>
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="outline" size="icon" className="rounded-full shrink-0" asChild>
           <Link to="/admin/graphics">
-            <ArrowLeft className="size-5 text-pink-500" />
+            <ArrowLeft className="size-5 text-slate-600" />
           </Link>
         </Button>
-        <h1 className="text-2xl font-black text-gray-800">Registar Nova Arte</h1>
+        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Registar Nova Arte</h1>
       </div>
       
       {formError && (
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-[16px] border border-red-100 flex items-center gap-3">
-          <AlertCircle className="size-5 flex-shrink-0" />
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-center gap-3 animate-in fade-in">
+          <AlertCircle className="size-5 shrink-0" />
           <p className="text-sm font-medium">{formError}</p>
         </div>
       )}
 
       <form 
         onSubmit={handleSubmit(onSubmit)} 
-        className="flex flex-col gap-6 bg-white p-8 rounded-[32px] border-4 border-pink-100 shadow-sm"
+        className="flex flex-col gap-8 bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-slate-100"
       >
-        <div>
-          <Label htmlFor="nome" className="text-gray-700 font-semibold">Nome da Estampa</Label>
+        <div className="space-y-2">
+          <Label htmlFor="nome" className="text-slate-700 font-semibold">Nome da Estampa</Label>
           <Input 
             id="nome"
             {...register("nome", { required: "O nome é obrigatório." })} 
             placeholder="Ex: Caveira Mexicana Neon" 
-            className="mt-2"
+            className="h-11 transition-shadow focus-visible:ring-primary/20"
           />
           {errors.nome && <span className="text-red-500 text-sm mt-1 block font-medium">{errors.nome.message}</span>}
         </div>
 
-        <div>
-          <Label htmlFor="estilosNomes" className="text-gray-700 font-semibold">Estilos (separados por vírgula)</Label>
+        <div className="space-y-2">
+          <Label htmlFor="estilosNomes" className="text-slate-700 font-semibold">Estilos (separados por vírgula)</Label>
           <Input 
             id="estilosNomes"
             {...register("estilosNomes", { required: "Informe pelo menos um estilo." })} 
             placeholder="Ex: Geek, Vintage, Minimalista" 
-            className="mt-2"
+            className="h-11 transition-shadow focus-visible:ring-primary/20"
           />
-          <span className="text-xs text-gray-400 mt-2 block font-medium">
+          <span className="text-sm text-slate-500 mt-2 block">
             Estes estilos ajudarão os clientes a filtrar as estampas na loja.
           </span>
           {errors.estilosNomes && <span className="text-red-500 text-sm mt-1 block font-medium">{errors.estilosNomes.message}</span>}
         </div>
 
-        <div>
-          <Label className="mb-3 block text-gray-700 font-semibold">Ficheiro da Estampa</Label>
-          <ImageInput
-            value={image}
-            onChange={setImage}
-            onRemove={() => setImage(null)}
-            placeholder="Fazer upload da arte"
-          />
+        <div className="space-y-3 border-t border-slate-100 pt-6">
+          <Label className="block text-slate-700 font-semibold text-lg">Ficheiro da Estampa</Label>
+          <div className="max-w-xs">
+            <ImageInput
+              value={image}
+              onChange={setImage}
+              onRemove={() => setImage(null)}
+              placeholder="Fazer upload da arte"
+            />
+          </div>
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full mt-4 gap-2 h-12 text-md rounded-xl" 
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
-          {isSubmitting ? "A Guardar..." : "Registar Estampa"}
-        </Button>
+        <div className="flex justify-end pt-6 mt-2 border-t border-slate-100">
+          <Button 
+            type="submit" 
+            size="lg"
+            className="w-full md:w-auto gap-2 h-12 px-8 text-base rounded-xl" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
+            {isSubmitting ? "A Guardar..." : "Registar Estampa"}
+          </Button>
+        </div>
       </form>
     </div>
   );

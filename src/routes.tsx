@@ -14,6 +14,7 @@ export const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/admin" replace />} />
+        
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="graphics" element={<AdminGraphicsPage />} />
@@ -26,6 +27,7 @@ export const AppRoutes = () => {
         <Route path="/customer" element={<CustomerLayout />}>
           <Route index element={<Navigate to="/customer/models" replace />} />
           <Route path="models" element={<CustomerModelsPage />} />
+          <Route path="models/:id" element={<CustomerModelsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

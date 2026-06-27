@@ -141,7 +141,7 @@ export const CustomerModelsPage = () => {
             return (
               <Link 
                 key={model.id}
-                to={`/customer/models/${model.id}/customize`} 
+                to={`/customer/models/${model.id}`} 
                 className="group flex flex-col bg-white rounded-3xl border border-slate-100 overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-pink-100 hover:border-pink-200 transition-all duration-300"
               >
                 <div className="aspect-[4/5] bg-slate-50 relative overflow-hidden flex items-center justify-center group-hover:bg-pink-50/30 transition-colors">

@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ColorCard, type ColorCardData } from "@/components/ui/color-card";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
-import { getCustomizableById } from "@/lib/api/personalizaveis";
+import { getCustomizableById, updatePersonalizavel, createCor, listCores } from "@/lib/api/personalizaveis";
+import type { CreatePersonalizavelImagemPayload, CreatePersonalizavelVariacaoPayload } from "@/lib/api/personalizaveis";
 import { API_BASE_URL } from "@/lib/api/api";
 
 interface ProductFormData {
@@ -26,6 +27,7 @@ interface ProductImage {
 
 export const EditModelPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [colors, setColors] = useState<ColorCardData[]>([]);
@@ -84,9 +86,56 @@ export const EditModelPage = () => {
 
   const onSubmit = async (data: ProductFormData) => {
     try {
-      console.log("Enviando dados para a API:", data);
-    } catch (err) {
+      const coresCadastradas = await listCores();
+      const arquivosFinais: File[] = [];
+      const imagensPayload: CreatePersonalizavelImagemPayload[] = [];
+      const variacoesPayload: CreatePersonalizavelVariacaoPayload[] = [];
+
+      const processarImagem = (
+        img: File | string | null,
+        tipo: "APRESENTACAO" | "FRENTE" | "COSTAS",
+        idCor: number
+      ) => {
+        if (img && img instanceof File) {
+          arquivosFinais.push(img);
+          imagensPayload.push({ idCor, idExternoStorage: img.name, tipoVisualizacao: tipo });
+        }
+      };
+
+      for (const colorData of colors) {
+        let cor = coresCadastradas.find(
+          (c) =>
+            c.hex_code.toLowerCase() === colorData.colorHex.toLowerCase() ||
+            c.nome.toLowerCase() === colorData.colorName.toLowerCase()
+        );
+
+        if (!cor) {
+          cor = await createCor(colorData.colorName, colorData.colorHex);
+          coresCadastradas.push(cor);
+        }
+
+        variacoesPayload.push({ idCor: cor.id });
+        processarImagem(colorData.presentationImage, "APRESENTACAO", cor.id);
+        processarImagem(colorData.frontImage, "FRENTE", cor.id);
+        processarImagem(colorData.backImage, "COSTAS", cor.id);
+      }
+
+      await updatePersonalizavel(
+        Number(id),
+        {
+          nome: data.nome,
+          preco: data.preco,
+          imagens: imagensPayload,
+          variacoes: variacoesPayload,
+        },
+        arquivosFinais
+      );
+
+      alert("Produto atualizado com sucesso!");
+      navigate("/admin/models");
+    } catch (err: any) {
       console.error("Erro ao salvar produto:", err);
+      alert(`Erro ao salvar: ${err.message || "Tente novamente."}`);
     }
   };
 

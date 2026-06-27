@@ -19,7 +19,7 @@ export const AdminDashboard = () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Produtos</h2>
-            <p className="text-gray-500 font-medium mt-1">Gerir camisolas e opções</p>
+            <p className="text-gray-500 font-medium mt-1">Gerir produtos e opções</p>
           </div>
         </Link>
 

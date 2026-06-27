@@ -4,13 +4,24 @@ import {
   Sparkles, ImageIcon, Shirt, LayoutDashboard, LogOut, Search, Bell, User, Menu, X 
 } from "lucide-react";
 
+const SEARCHABLE_PATHS = ["/admin/graphics", "/admin/models"];
+
+export type AdminLayoutContext = {
+  search: string;
+  setSearch: (v: string) => void;
+};
+
 export const AdminLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setSearch("");
   }, [location.pathname]);
+
+  const isSearchable = SEARCHABLE_PATHS.some((p) => location.pathname.startsWith(p));
 
   const menuItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Início" },
@@ -98,14 +109,18 @@ export const AdminLayout = () => {
               <Menu size={24} />
             </button>
 
-            <div className="relative w-full max-w-md hidden sm:block group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 size-5 transition-colors group-focus-within:text-pink-500" />
-              <input 
-                type="text" 
-                placeholder="Pesquisar..." 
-                className="w-full bg-slate-50/50 border border-slate-200 text-slate-700 px-12 py-2.5 rounded-full outline-none focus:ring-4 focus:ring-pink-50 focus:border-pink-300 focus:bg-white transition-all font-medium placeholder:text-slate-400"
-              />
-            </div>
+            {isSearchable && (
+              <div className="relative w-full max-w-md hidden sm:block group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 size-5 transition-colors group-focus-within:text-pink-500" />
+                <input 
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Pesquisar..."
+                  className="w-full bg-slate-50/50 border border-slate-200 text-slate-700 px-12 py-2.5 rounded-full outline-none focus:ring-4 focus:ring-pink-50 focus:border-pink-300 focus:bg-white transition-all font-medium placeholder:text-slate-400"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 sm:gap-5 ml-auto shrink-0">
@@ -130,7 +145,7 @@ export const AdminLayout = () => {
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#fdf2f8]/50 custom-scrollbar">
           <div className="max-w-7xl mx-auto w-full pb-10">
-            <Outlet />
+            <Outlet context={{ search, setSearch } satisfies AdminLayoutContext} />
           </div>
         </main>
         

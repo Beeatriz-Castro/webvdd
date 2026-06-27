@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
-import { Search, Plus, Filter, Heart, Sparkles, ImageIcon, Loader2 } from "lucide-react";
-import { listEstampas, type Estampa } from "@/lib/api/estampas";
+import { Link, useOutletContext } from "react-router";
+import { Search, Plus, Sparkles, ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { listEstampas, deleteEstampa, type Estampa } from "@/lib/api/estampas";
 import { API_BASE_URL } from "@/lib/api/api";
+import type { AdminLayoutContext } from "@/layouts/admin";
 
 export const AdminGraphicsPage = () => {
   const [estampas, setEstampas] = useState<Estampa[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // search sincronizado com o header do AdminLayout
+  const { search, setSearch } = useOutletContext<AdminLayoutContext>();
 
   useEffect(() => {
     const fetchEstampas = async () => {
@@ -29,6 +33,20 @@ export const AdminGraphicsPage = () => {
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  const handleDelete = async (estampa: Estampa) => {
+    if (!window.confirm(`Tem a certeza que deseja excluir a estampa "${estampa.nome}"? Esta ação não pode ser desfeita.`)) return;
+    setDeletingId(estampa.id);
+    try {
+      await deleteEstampa(estampa.id);
+      setEstampas((prev) => prev.filter((e) => e.id !== estampa.id));
+    } catch (error: any) {
+      console.error("Erro ao excluir estampa:", error);
+      alert(`Não foi possível excluir a estampa: ${error.message || "Tente novamente."}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto flex flex-col gap-8">
@@ -96,7 +114,7 @@ export const AdminGraphicsPage = () => {
             return (
               <div
                 key={estampa.id}
-                className="group flex flex-col bg-white rounded-[32px] border-4 border-pink-100 overflow-hidden hover:border-pink-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(255,192,203,0.4)] transition-all duration-300 cursor-pointer"
+                className={`group flex flex-col bg-white rounded-[32px] border-4 border-pink-100 overflow-hidden hover:border-pink-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgb(255,192,203,0.4)] transition-all duration-300 cursor-pointer ${deletingId === estampa.id ? "opacity-50 pointer-events-none scale-95" : ""}`}
               >
                 <div className="aspect-square bg-pink-50 p-4 flex items-center justify-center relative overflow-hidden">
                   {imageUrl ? (
@@ -108,8 +126,15 @@ export const AdminGraphicsPage = () => {
                   ) : (
                     <ImageIcon className="size-12 text-pink-200" />
                   )}
-                  <button className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-pink-100">
-                    <Heart className="size-4 text-pink-400" />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(estampa); }}
+                    className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                    title="Excluir estampa"
+                  >
+                    {deletingId === estampa.id
+                      ? <Loader2 className="size-4 text-red-400 animate-spin" />
+                      : <Trash2 className="size-4 text-red-400" />
+                    }
                   </button>
                 </div>
 
