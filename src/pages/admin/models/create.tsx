@@ -127,7 +127,7 @@ export const CreateModelPage = () => {
             <ArrowLeft className="size-5 text-slate-600" />
           </Link>
         </Button>
-        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Registar Nova Camiseta</h1>
+        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Registar Nova Camisola</h1>
       </div>
       
       {formError && (
@@ -148,7 +148,7 @@ export const CreateModelPage = () => {
             <Input 
               id="nome"
               {...register("nome", { required: "O nome do produto é obrigatório." })} 
-              placeholder="Ex: Camiseta Oversized Algodão" 
+              placeholder="Ex: Camisola Oversized Algodão" 
               className="h-11 transition-shadow focus-visible:ring-primary/20"
             />
             {errors.nome && <span className="text-red-500 text-sm mt-1 block font-medium">{errors.nome.message}</span>}

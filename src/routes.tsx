@@ -8,6 +8,7 @@ import { EditModelPage } from "./pages/admin/models/edit";
 import { AdminGraphicsPage } from "./pages/admin/graphics/page";
 import { CreateGraphicPage } from "./pages/admin/graphics/create";
 import { CustomerModelsPage } from "./pages/customer/models";
+import { CustomerCustomizePage } from "./pages/customer/models/customize";
 
 export const AppRoutes = () => {
   return (
@@ -27,7 +28,7 @@ export const AppRoutes = () => {
         <Route path="/customer" element={<CustomerLayout />}>
           <Route index element={<Navigate to="/customer/models" replace />} />
           <Route path="models" element={<CustomerModelsPage />} />
-          <Route path="models/:id" element={<CustomerModelsPage />} />
+          <Route path="models/:id" element={<CustomerCustomizePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
