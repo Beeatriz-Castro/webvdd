@@ -7,10 +7,13 @@ import {
   Download, RotateCcw, ZoomIn, ZoomOut, Move,
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api/api";
+import { useAuth } from "@/lib/auth-context";
+import { addToCart, createOrder, type CartItem } from "@/lib/local-cart";
 import {
   getCustomizableById,
   type ProdutoPersonalizavel,
   type Cor,
+  decrementStock,
 } from "@/lib/api/personalizaveis";
 import { listEstampas, listEstilos, type Estampa, type Estilo } from "@/lib/api/estampas";
 
@@ -260,6 +263,9 @@ export const CustomerCustomizePage = () => {
   const [cartItems, setCartItems] = useState<SelectedItem[]>([]);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [generatingPng, setGeneratingPng] = useState(false);
+  const [whatsappSent, setWhatsappSent] = useState(false);
+  const [finalizingOrder, setFinalizingOrder] = useState(false);
+  useAuth(); // mantém contexto de autenticação
 
   const ESTAMPAS_PER_PAGE = 8;
 
@@ -425,6 +431,21 @@ export const CustomerCustomizePage = () => {
       imageUrl: currentImageUrl,
     };
 
+    // Salva no localStorage imediatamente
+    addToCart({
+      productId: produto.id,
+      productName: produto.nome,
+      color: selectedColor.nome,
+      colorHex: selectedColor.hex_code,
+      faceView: selectedFace,
+      estampaNome: selectedEstampa?.nome ?? null,
+      baseImageUrl: currentImageUrl,
+      previewDataUrl,
+      quantities: { ...quantities },
+      unitPrice: Number(produto.preco),
+      totalPrice: Number(produto.preco) * totalQtd,
+    });
+
     setCartItems((prev) => [...prev, newItem]);
     setStep("summary");
   };
@@ -433,6 +454,56 @@ export const CustomerCustomizePage = () => {
     if (cartItems.length === 0) return;
     const msg = buildWhatsAppMessage(cartItems);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+    setWhatsappSent(true);
+  };
+
+  const handleFinalizeOrder = async () => {
+    if (cartItems.length === 0) return;
+    setFinalizingOrder(true);
+    try {
+      // Subtrai estoque via backend para cada item
+      for (const item of cartItems) {
+        const variacoes = Object.entries(item.quantities)
+          .filter(([, qty]) => qty > 0)
+          .map(([sigla, quantidade]) => {
+            const variacao = item.produto.variacoes.find(
+              (v) => v.cor.id === item.cor.id && v.tamanho?.sigla === sigla
+            );
+            return { idCor: item.cor.id, idTamanho: variacao?.tamanho?.id ?? 0, quantidade };
+          });
+
+        if (variacoes.length > 0) {
+          try {
+            await decrementStock(item.produto.id, variacoes);
+          } catch (e) {
+            console.warn("Não foi possível subtrair estoque:", e);
+          }
+        }
+      }
+
+      // Cria pedido local e limpa carrinho
+      const localCartItems = cartItems.map((item) => ({
+        id: crypto.randomUUID(),
+        productId: item.produto.id,
+        productName: item.produto.nome,
+        color: item.cor.nome,
+        colorHex: item.cor.hex_code,
+        faceView: item.faceView,
+        estampaNome: item.estampa?.nome ?? null,
+        baseImageUrl: item.imageUrl,
+        previewDataUrl: item.previewDataUrl,
+        quantities: item.quantities,
+        unitPrice: Number(item.produto.preco),
+        totalPrice: Number(item.produto.preco) * Object.values(item.quantities).reduce((a, b) => a + b, 0),
+        addedAt: new Date().toISOString(),
+      })) as CartItem[];
+
+      createOrder(localCartItems);
+      navigate("/customer/orders");
+    } catch (err: any) {
+      alert(err.message || "Erro ao finalizar pedido. Tente novamente.");
+      setFinalizingOrder(false);
+    }
   };
 
   const removeItem = (index: number) => setCartItems((prev) => prev.filter((_, i) => i !== index));
@@ -537,12 +608,38 @@ export const CustomerCustomizePage = () => {
                 <span className="text-slate-500 font-medium">Total ({cartItems.reduce((acc, item) => acc + Object.values(item.quantities).reduce((a, b) => a + b, 0), 0)} itens)</span>
                 <span className="text-2xl font-black text-slate-800">{grandTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
               </div>
-              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                <p className="text-sm text-emerald-700 font-medium">📱 Ao clicar em "Enviar Pedido", você será redirecionado para o WhatsApp com todas as informações do pedido já preenchidas.</p>
-              </div>
-              <button onClick={handleSendWhatsApp} className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-200 hover:-translate-y-0.5 transition-all">
-                <MessageCircle className="size-6" /> Enviar Pedido pelo WhatsApp
-              </button>
+
+              {!whatsappSent ? (
+                <>
+                  <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                    <p className="text-sm text-emerald-700 font-medium">📱 Primeiro, envie o pedido pelo WhatsApp para combinar entrega e pagamento.</p>
+                  </div>
+                  <button onClick={handleSendWhatsApp} className="w-full flex items-center justify-center gap-3 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-200 hover:-translate-y-0.5 transition-all">
+                    <MessageCircle className="size-6" /> Enviar Pedido pelo WhatsApp
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex items-center gap-3">
+                    <span className="text-xl">✅</span>
+                    <p className="text-sm text-emerald-700 font-medium">WhatsApp aberto! Após enviar a mensagem, clique em "Finalizar Pedido" para registrar o pedido e atualizar o estoque.</p>
+                  </div>
+                  <button
+                    onClick={handleFinalizeOrder}
+                    disabled={finalizingOrder}
+                    className="w-full flex items-center justify-center gap-3 py-4 bg-pink-500 hover:bg-pink-600 disabled:opacity-60 text-white font-bold text-lg rounded-2xl shadow-lg shadow-pink-200 hover:-translate-y-0.5 transition-all"
+                  >
+                    {finalizingOrder ? <Loader2 className="size-6 animate-spin" /> : <><ShoppingBag className="size-6" /> Finalizar Pedido</>}
+                  </button>
+                  <button
+                    onClick={handleSendWhatsApp}
+                    className="w-full py-2.5 text-emerald-600 font-semibold text-sm hover:text-emerald-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="size-4" /> Reenviar pelo WhatsApp
+                  </button>
+                </>
+              )}
+
               <button onClick={() => navigate("/customer/models")} className="w-full py-3 text-slate-400 font-semibold text-sm hover:text-slate-600 transition-colors">Continuar comprando</button>
             </div>
           )}

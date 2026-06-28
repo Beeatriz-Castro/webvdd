@@ -14,6 +14,8 @@ import { AdminGraphicsPage } from "./pages/admin/graphics/page";
 import { CreateGraphicPage } from "./pages/admin/graphics/create";
 import { CustomerModelsPage } from "./pages/customer/models";
 import { CustomerCustomizePage } from "./pages/customer/models/customize";
+import { CustomerCartPage } from "./pages/customer/cart";
+import { CustomerOrdersPage } from "./pages/customer/orders";
 import { PublicHomePage } from "./pages/public/home";
 
 export const AppRoutes = () => {
@@ -42,6 +44,8 @@ export const AppRoutes = () => {
             <Route index element={<Navigate to="/customer/models" replace />} />
             <Route path="models" element={<CustomerModelsPage />} />
             <Route path="models/:id" element={<CustomerCustomizePage />} />
+            <Route path="cart" element={<CustomerCartPage />} />
+            <Route path="orders" element={<CustomerOrdersPage />} />
           </Route>
         </Route>
       </Routes>
