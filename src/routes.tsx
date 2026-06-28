@@ -14,12 +14,13 @@ import { AdminGraphicsPage } from "./pages/admin/graphics/page";
 import { CreateGraphicPage } from "./pages/admin/graphics/create";
 import { CustomerModelsPage } from "./pages/customer/models";
 import { CustomerCustomizePage } from "./pages/customer/models/customize";
+import { PublicHomePage } from "./pages/public/home";
 
 export const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/signin" replace />} />
+        <Route path="/" element={<PublicHomePage />} />
         <Route path="/signin" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
