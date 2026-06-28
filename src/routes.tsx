@@ -12,6 +12,7 @@ import { CreateModelPage } from "./pages/admin/models/create";
 import { EditModelPage } from "./pages/admin/models/edit";
 import { AdminGraphicsPage } from "./pages/admin/graphics/page";
 import { CreateGraphicPage } from "./pages/admin/graphics/create";
+import { EditGraphicPage } from "./pages/admin/graphics/edit";
 import { CustomerModelsPage } from "./pages/customer/models";
 import { CustomerCustomizePage } from "./pages/customer/models/customize";
 import { CustomerCartPage } from "./pages/customer/cart";
@@ -33,6 +34,7 @@ export const AppRoutes = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="graphics" element={<AdminGraphicsPage />} />
             <Route path="graphics/create" element={<CreateGraphicPage />} />
+            <Route path="graphics/edit/:id" element={<EditGraphicPage />} />
             <Route path="models" element={<AdminModelsPage />} />
             <Route path="models/create" element={<CreateModelPage />} />
             <Route path="models/edit/:id" element={<EditModelPage />} />

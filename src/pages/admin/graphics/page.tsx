@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router";
-import { Search, Plus, Sparkles, ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { Search, Plus, Sparkles, ImageIcon, Loader2, Trash2, Pencil } from "lucide-react";
 import { listEstampas, listEstilos, deleteEstampa, type Estampa, type Estilo } from "@/lib/api/estampas";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { API_BASE_URL } from "@/lib/api/api";
@@ -160,16 +160,26 @@ export const AdminGraphicsPage = () => {
                     ) : (
                       <ImageIcon className="size-12 text-pink-200" />
                     )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setConfirmEstampa(estampa); }}
-                      className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
-                      title="Excluir estampa"
-                    >
-                      {deletingId === estampa.id
-                        ? <Loader2 className="size-4 text-red-400 animate-spin" />
-                        : <Trash2 className="size-4 text-red-400" />
-                      }
-                    </button>
+                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link
+                        to={`/admin/graphics/edit/${estampa.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-blue-50"
+                        title="Editar estampa"
+                      >
+                        <Pencil className="size-4 text-blue-400" />
+                      </Link>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmEstampa(estampa); }}
+                        className="bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-red-50"
+                        title="Excluir estampa"
+                      >
+                        {deletingId === estampa.id
+                          ? <Loader2 className="size-4 text-red-400 animate-spin" />
+                          : <Trash2 className="size-4 text-red-400" />
+                        }
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-5 flex flex-col flex-1 justify-between bg-white">
