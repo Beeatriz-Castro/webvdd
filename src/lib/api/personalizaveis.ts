@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./estampas";
+import { API_BASE_URL, getAuthHeaders } from "./api";
 
 export interface Categoria {
   id: number;
@@ -92,7 +92,7 @@ export async function listCategorias(): Promise<Categoria[]> {
 export async function createCategoria(nome: string): Promise<Categoria> {
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/categorias`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify({ nome }),
   });
   if (!response.ok) {
@@ -117,7 +117,7 @@ export async function listCores(): Promise<Cor[]> {
 export async function createCor(nome: string, hexCode: string): Promise<Cor> {
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/cores`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify({ nome, hexCode }),
   });
   if (!response.ok) {
@@ -158,6 +158,7 @@ export async function createPersonalizavel(
 
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
   });
   if (!response.ok) {
@@ -178,6 +179,7 @@ export async function updatePersonalizavel(
 
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}`, {
     method: "PATCH",
+    headers: getAuthHeaders(),
     body: formData,
   });
   if (!response.ok) {
@@ -190,6 +192,7 @@ export async function updatePersonalizavel(
 export async function deletePersonalizavel(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
@@ -203,7 +206,7 @@ export async function togglePersonalizavelStatus(
 ): Promise<ProdutoPersonalizavel> {
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify({ ativo }),
   });
   if (!response.ok) {
@@ -219,7 +222,7 @@ export async function decrementStock(
 ): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/produtos-personalizaveis/${id}/stock`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify({ variacoes }),
   });
   if (!response.ok) {

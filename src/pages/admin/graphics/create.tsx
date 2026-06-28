@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageInput } from "@/components/ui/image-input";
 import { ArrowLeft, Loader2, Save, AlertCircle } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api/api"; 
+import { API_BASE_URL, getAuthHeaders } from "@/lib/api/api"; 
 
 interface GraphicFormData {
   nome: string;
@@ -45,6 +45,7 @@ export const CreateGraphicPage = () => {
 
       const response = await fetch(`${API_BASE_URL}/estampas`, {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 

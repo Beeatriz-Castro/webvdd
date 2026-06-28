@@ -3,19 +3,19 @@ import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Pencil, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import type { ProdutoPersonalizavel } from "@/lib/api/personalizaveis";
-import { togglePersonalizavelStatus, deletePersonalizavel } from "@/lib/api/personalizaveis";
+import { togglePersonalizavelStatus } from "@/lib/api/personalizaveis";
 import { API_BASE_URL } from "@/lib/api/api";
 
 interface ModelCardProps {
   product: ProdutoPersonalizavel;
+  isDeleting?: boolean;
   onStatusChange?: (id: number, ativo: boolean) => void;
   onDelete?: (id: number) => void;
 }
 
-export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps) => {
+export const ModelCard = ({ product, isDeleting, onStatusChange, onDelete }: ModelCardProps) => {
   const [active, setActive] = useState(product.ativo);
   const [loading, setLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const presentationImage = product.imagens?.find(
     (img) => img.tipo_visualizacao === "APRESENTACAO"
@@ -46,27 +46,6 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
       setActive(previousStatus);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    // Usa setTimeout para garantir que o confirm não fica bloqueado por CSS
-    const confirmed = await new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        resolve(window.confirm(`Tem a certeza que deseja excluir "${product.nome}"? Esta ação não pode ser desfeita.`));
-      }, 0);
-    });
-
-    if (!confirmed) return;
-
-    setIsDeleting(true);
-    try {
-      await deletePersonalizavel(product.id);
-      onDelete?.(product.id);
-    } catch (error: any) {
-      console.error("Erro ao excluir produto:", error);
-      alert(error.message || "Não foi possível excluir o produto. Ele pode ter pedidos vinculados.");
-      setIsDeleting(false);
     }
   };
 
@@ -123,7 +102,7 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
           </Button>
           <Button
             variant="outline"
-            onClick={handleDelete}
+            onClick={() => onDelete?.(product.id)}
             disabled={isDeleting}
             className="px-3 rounded-xl border-slate-200 text-slate-400 hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             title="Excluir produto"

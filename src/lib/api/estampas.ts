@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./api";
+import { API_BASE_URL, getAuthHeaders } from "./api";
 export { API_BASE_URL };
 
 export interface Estilo {
@@ -63,26 +63,38 @@ export async function listEstilos(): Promise<Estilo[]> {
 }
 
 export async function listEstampas(params: ListEstampasParams = {}): Promise<Estampa[]> {
-  const searchParams = new URLSearchParams();
   const trimmedSearch = params.search?.trim();
 
-  if (trimmedSearch) {
-    searchParams.append("search", trimmedSearch);
+  // Faz duas buscas em paralelo quando há estiloIds para garantir merge de resultados:
+  // 1. Busca por nome (search)
+  // 2. Busca por estilo (estiloIds)
+  // Depois remove duplicatas por id
+  const fetchByParams = async (p: { search?: string; estiloIds?: number[] }) => {
+    const searchParams = new URLSearchParams();
+    if (p.search) searchParams.append("search", p.search);
+    if (p.estiloIds && p.estiloIds.length > 0) {
+      searchParams.append("estiloIds", JSON.stringify(p.estiloIds));
+    }
+    const queryString = searchParams.toString();
+    const response = await fetch(
+      `${API_BASE_URL}/estampas${queryString ? `?${queryString}` : ""}`
+    );
+    if (!response.ok) throw new Error(`Erro ao listar estampas: ${response.statusText}`);
+    return response.json() as Promise<Estampa[]>;
+  };
+
+  if (trimmedSearch && params.estiloIds && params.estiloIds.length > 0) {
+    // Busca por nome e por estilo em paralelo, faz merge removendo duplicatas
+    const [byName, byEstilo] = await Promise.all([
+      fetchByParams({ search: trimmedSearch }),
+      fetchByParams({ estiloIds: params.estiloIds }),
+    ]);
+    const map = new Map<number, Estampa>();
+    [...byName, ...byEstilo].forEach((e) => map.set(e.id, e));
+    return Array.from(map.values());
   }
 
-  if (params.estiloIds && params.estiloIds.length > 0) {
-    searchParams.append("estiloIds", JSON.stringify(params.estiloIds));
-  }
-
-  const queryString = searchParams.toString();
-  const response = await fetch(
-    `${API_BASE_URL}/estampas${queryString ? `?${queryString}` : ""}`
-  );
-  
-  if (!response.ok) {
-    throw new Error(`Erro ao listar estampas: ${response.statusText}`);
-  }
-  return response.json();
+  return fetchByParams({ search: trimmedSearch, estiloIds: params.estiloIds });
 }
 
 export async function createEstampa(data: CreateEstampaPayload): Promise<Estampa> {
@@ -93,6 +105,7 @@ export async function createEstampa(data: CreateEstampaPayload): Promise<Estampa
 
   const response = await fetch(`${API_BASE_URL}/estampas`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
   });
   
@@ -111,6 +124,7 @@ export async function updateEstampa(id: number, data: UpdateEstampaPayload): Pro
 
   const response = await fetch(`${API_BASE_URL}/estampas/${id}`, {
     method: "PATCH",
+    headers: getAuthHeaders(),
     body: formData,
   });
 
@@ -125,6 +139,7 @@ export async function updateEstampa(id: number, data: UpdateEstampaPayload): Pro
 export async function deleteEstampa(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/estampas/${id}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
   
   if (!response.ok) {

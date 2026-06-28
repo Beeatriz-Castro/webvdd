@@ -19,42 +19,39 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   onCancel,
-  confirmVariant = "outline",
 }: ConfirmDialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-background rounded-[10px] border border-border max-w-md w-full mx-4 shadow-lg overflow-hidden">
-        <div className="p-6">
-          {title && (
-            <h2 className="font-bold text-xl mb-2">
-              {title}
-            </h2>
-          )}
-          <p className="text-sm mb-6 text-muted-foreground whitespace-pre-line">
-            {message}
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onConfirm}
-              className="h-[37px] min-w-[160px]"
-            >
-              {confirmLabel}
-            </Button>
-            <Button
-              type="button"
-              onClick={onCancel}
-              className={`h-[37px] min-w-[160px] ${confirmVariant === "warning"
-                ? "bg-primary text-primary-foreground hover:bg-primary/80 border-primary"
-                : ""
-                }`}
-            >
-              {cancelLabel}
-            </Button>
-          </div>
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 px-4"
+      style={{ zIndex: 9999 }}
+      onClick={onCancel}
+    >
+      <div
+        className="bg-white rounded-2xl max-w-sm w-full shadow-xl p-6 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {title && (
+          <h2 className="font-bold text-lg text-slate-800">{title}</h2>
+        )}
+        <p className="text-sm text-slate-500 leading-relaxed">{message}</p>
+        <div className="flex gap-3 justify-end mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="rounded-xl"
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onConfirm(); }}
+            className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0"
+          >
+            {confirmLabel}
+          </Button>
         </div>
       </div>
     </div>
