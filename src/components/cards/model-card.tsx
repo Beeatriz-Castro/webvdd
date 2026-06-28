@@ -3,11 +3,8 @@ import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Pencil, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import type { ProdutoPersonalizavel } from "@/lib/api/personalizaveis";
-import { 
-  togglePersonalizavelStatus, 
-  deletePersonalizavel
-} from "@/lib/api/personalizaveis";
-import { API_BASE_URL } from "@/lib/api/api"; 
+import { togglePersonalizavelStatus, deletePersonalizavel } from "@/lib/api/personalizaveis";
+import { API_BASE_URL } from "@/lib/api/api";
 
 interface ModelCardProps {
   product: ProdutoPersonalizavel;
@@ -23,12 +20,11 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
   const presentationImage = product.imagens?.find(
     (img) => img.tipo_visualizacao === "APRESENTACAO"
   );
-  
   const imageUrl = presentationImage?.id_externo_storage
     ? `${API_BASE_URL}/uploads/${presentationImage.id_externo_storage}`
     : null;
 
-  const categoryNames = product.categorias?.length 
+  const categoryNames = product.categorias?.length
     ? product.categorias.map((cp) => cp.categoria.nome).join(", ")
     : "Sem categoria";
 
@@ -39,11 +35,9 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
 
   const handleToggle = async (newStatus: boolean) => {
     if (loading || active === newStatus) return;
-    
     const previousStatus = active;
     setActive(newStatus);
     setLoading(true);
-    
     try {
       await togglePersonalizavelStatus(product.id, newStatus);
       onStatusChange?.(product.id, newStatus);
@@ -56,28 +50,32 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Tem a certeza que deseja excluir o produto "${product.nome}"? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
+    // Usa setTimeout para garantir que o confirm não fica bloqueado por CSS
+    const confirmed = await new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        resolve(window.confirm(`Tem a certeza que deseja excluir "${product.nome}"? Esta ação não pode ser desfeita.`));
+      }, 0);
+    });
+
+    if (!confirmed) return;
 
     setIsDeleting(true);
     try {
       await deletePersonalizavel(product.id);
       onDelete?.(product.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao excluir produto:", error);
-      alert("Não foi possível excluir o produto. Ele pode ter pedidos vinculados.");
+      alert(error.message || "Não foi possível excluir o produto. Ele pode ter pedidos vinculados.");
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className={`group flex flex-col bg-white rounded-3xl border border-slate-100 overflow-hidden transition-all duration-300 ${isDeleting ? 'opacity-50 pointer-events-none scale-95' : 'hover:shadow-xl hover:shadow-pink-100/50 hover:border-pink-200'}`}>
-      
+    <div className={`group flex flex-col bg-white rounded-3xl border border-slate-100 overflow-hidden transition-all duration-300 ${isDeleting ? "opacity-50 scale-95" : "hover:shadow-xl hover:shadow-pink-100/50 hover:border-pink-200"}`}>
       <div className="aspect-square bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
         {imageUrl ? (
           <img
-            src={imageUrl} // CORREÇÃO 3: Faltava o atributo src nesta imagem!
+            src={imageUrl}
             className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-500"
             alt={product.nome}
             loading="lazy"
@@ -123,11 +121,11 @@ export const ModelCard = ({ product, onStatusChange, onDelete }: ModelCardProps)
               Editar
             </Link>
           </Button>
-          
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleDelete}
-            className="px-3 rounded-xl border-slate-200 text-slate-400 hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors"
+            disabled={isDeleting}
+            className="px-3 rounded-xl border-slate-200 text-slate-400 hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             title="Excluir produto"
           >
             {isDeleting ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}

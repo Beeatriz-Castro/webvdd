@@ -32,6 +32,11 @@ const DEFAULT_SIZES = [
   { sigla: "XGG", estoque: 0 },
 ];
 
+function extractFilename(url: string): string {
+  // "http://localhost:3000/uploads/1234567890.png" → "1234567890.png"
+  return url.split("/uploads/").pop() ?? url;
+}
+
 export const EditModelPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -41,11 +46,9 @@ export const EditModelPage = () => {
   const [colors, setColors] = useState<ColorCardData[]>([]);
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ProductFormData>();
 
-  // Monta os ColorCardData a partir do produto carregado (imagens + variações)
   const processProduct = useCallback((data: ProdutoPersonalizavel) => {
     const colorMap = new Map<number, ColorCardData>();
 
-    // Inicializa cada cor encontrada nas imagens
     data.imagens?.forEach((img) => {
       if (!colorMap.has(img.id_cor)) {
         colorMap.set(img.id_cor, {
@@ -57,7 +60,6 @@ export const EditModelPage = () => {
           sizes: DEFAULT_SIZES.map((s) => ({ ...s })),
         });
       }
-
       const card = colorMap.get(img.id_cor)!;
       const imageUrl = `${API_BASE_URL}/uploads/${img.id_externo_storage}`;
       if (img.tipo_visualizacao === "APRESENTACAO") card.presentationImage = imageUrl;
@@ -65,7 +67,6 @@ export const EditModelPage = () => {
       if (img.tipo_visualizacao === "COSTAS") card.backImage = imageUrl;
     });
 
-    // Também inicializa cores que só aparecem em variações (sem imagem ainda)
     data.variacoes?.forEach((v) => {
       if (!colorMap.has(v.id_cor)) {
         colorMap.set(v.id_cor, {
@@ -77,8 +78,6 @@ export const EditModelPage = () => {
           sizes: DEFAULT_SIZES.map((s) => ({ ...s })),
         });
       }
-
-      // Popula o estoque de cada tamanho
       if (v.tamanho) {
         const card = colorMap.get(v.id_cor)!;
         const sizeIndex = card.sizes.findIndex(
@@ -140,9 +139,16 @@ export const EditModelPage = () => {
         tipo: "APRESENTACAO" | "FRENTE" | "COSTAS",
         idCor: number
       ) => {
-        if (img && img instanceof File) {
+        if (!img) return;
+
+        if (img instanceof File) {
+          // Nova imagem enviada pelo usuário
           arquivosFinais.push(img);
           imagensPayload.push({ idCor, idExternoStorage: img.name, tipoVisualizacao: tipo });
+        } else if (typeof img === "string") {
+          // Imagem já existente — mantém o filename original
+          const filename = extractFilename(img);
+          imagensPayload.push({ idCor, idExternoStorage: filename, tipoVisualizacao: tipo });
         }
       };
 
@@ -309,12 +315,7 @@ export const EditModelPage = () => {
         </div>
 
         <div className="flex justify-end pt-6 border-t border-slate-100">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSubmitting}
-            className="gap-2 h-12 px-8 rounded-xl"
-          >
+          <Button type="submit" size="lg" disabled={isSubmitting} className="gap-2 h-12 px-8 rounded-xl">
             {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             {isSubmitting ? "A Guardar..." : "Salvar Alterações"}
           </Button>
