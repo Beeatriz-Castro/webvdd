@@ -4,6 +4,8 @@ export interface RegisterPayload {
   email: string;
   senha: string;
   confirmarSenha: string;
+  nome: string;
+  cpf: string;
 }
 
 export interface LoginPayload {
@@ -22,6 +24,45 @@ export interface LoginResponse {
 
 export interface AuthMessageResponse {
   message: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  novaSenha: string;
+}
+
+export async function forgotPassword(data: ForgotPasswordPayload): Promise<AuthMessageResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Erro ao solicitar recuperação de palavra-passe.");
+  }
+
+  return response.json();
+}
+
+export async function resetPassword(data: ResetPasswordPayload): Promise<AuthMessageResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Erro ao redefinir a palavra-passe.");
+  }
+
+  return response.json();
 }
 
 export async function register(

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { 
   Sparkles, ImageIcon, Shirt, LayoutDashboard, LogOut, Search, Bell, User, Menu, X 
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 const SEARCHABLE_PATHS = ["/admin/graphics", "/admin/models"];
 
@@ -13,6 +14,8 @@ export type AdminLayoutContext = {
 
 export const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -22,6 +25,11 @@ export const AdminLayout = () => {
   }, [location.pathname]);
 
   const isSearchable = SEARCHABLE_PATHS.some((p) => location.pathname.startsWith(p));
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/signin", { replace: true });
+  };
 
   const menuItems = [
     { path: "/admin", icon: LayoutDashboard, label: "Início" },
@@ -90,7 +98,10 @@ export const AdminLayout = () => {
         </nav>
 
         <div className="p-4 border-t border-pink-50/80">
-          <button className="flex items-center gap-3.5 px-4 py-3 w-full rounded-2xl font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300 cursor-pointer group">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3.5 px-4 py-3 w-full rounded-2xl font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300 cursor-pointer group"
+          >
             <LogOut size={20} className="text-slate-400 group-hover:text-red-500 transition-colors" />
             Sair
           </button>
@@ -126,15 +137,14 @@ export const AdminLayout = () => {
           <div className="flex items-center gap-3 sm:gap-5 ml-auto shrink-0">
             <button className="p-2.5 text-slate-500 bg-slate-50 rounded-full hover:bg-pink-50 hover:text-pink-500 transition-all duration-300 relative cursor-pointer border border-slate-100">
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             </button>
             
             <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
             
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="text-right hidden md:block transition-transform group-hover:-translate-x-0.5">
-                <p className="text-sm font-bold text-slate-700">Beatriz</p>
-                <p className="text-xs font-semibold text-pink-500">Admin</p>
+                <p className="text-sm font-bold text-slate-700">{user?.email?.split("@")[0] ?? "Admin"}</p>
+                <p className="text-xs font-semibold text-pink-500">{user?.role ?? "Admin"}</p>
               </div>
               <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold border-2 border-white shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
                 <User size={20} />

@@ -69,7 +69,7 @@ export const CustomerModelsPage = () => {
           <ShoppingBag size={32} />
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
-          Escolha a sua Camisola
+          Escolha o seu produto
         </h1>
         <p className="text-slate-500 font-medium max-w-lg text-lg">
           Selecione o modelo perfeito e transforme-o numa peça única com as nossas estampas exclusivas.
